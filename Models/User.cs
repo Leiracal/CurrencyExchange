@@ -7,16 +7,16 @@ namespace CurrencyExchange.Models
     {
 
         // Active, unlocked Real Money balance
-        private decimal RMTBalance { get; set; }
+        public decimal RMTBalance { get; set; }
 
         // RMT balance locked in buy limit orders
-        private decimal RMTLocked { get; set; }
+        public decimal RMTLocked { get; set; }
 
         // Active, unlocked VC balance
-        private int VCBalance { get; set; }
-        
+        public int VCBalance { get; set; }
+
         // VC balance locked in sell limit orders
-        private int VCLocked { get; set; }
+        public int VCLocked { get; set; }
 
     }
 }

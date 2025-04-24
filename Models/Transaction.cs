@@ -2,21 +2,21 @@
 {
     public class Transaction
     {
-        private int TransactionID { get; set; }
+        public int TransactionID { get; set; }
 
         // OrderID for buy order
-        private int BuyOrderID { get; set; }
+        public int BuyOrderID { get; set; }
 
         // OrderID for sell order
-        private int SellOrderID { get; set; }
+        public int SellOrderID { get; set; }
 
         // Quantity of VC exchanged
-        private int Quantity { get; set; }
+        public int Quantity { get; set; }
 
         // Price per 1 VC
-        private decimal Price { get; set; }
+        public decimal Price { get; set; }
 
         // Date/time that transaction was completed
-        private DateTime FulfilledAt { get; set; }
+        public DateTime FulfilledAt => DateTime.Now;
     }
 }
