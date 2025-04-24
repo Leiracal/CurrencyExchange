@@ -7,7 +7,7 @@ namespace CurrencyExchange.Models
     {
         public int OrderID { get; set; }
         public int UserID { get; set; }
-        public String? Type { get; set; }
+        public string? Type { get; set; }
 
         [Column(TypeName = "decimal(8,2)")]
         [DisplayFormat(DataFormatString = "{0:C}")]
@@ -16,7 +16,7 @@ namespace CurrencyExchange.Models
         [Required(ErrorMessage = "Enter a quantity")]
         public int Quantity { get; set; }
         public int Remaining { get; set; }
-        public String? Status { get; set; }
+        public string? Status { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 }
