@@ -5,7 +5,6 @@ namespace CurrencyExchange.Models
 {
     public class User : IdentityUser
     {
-
         // Active, unlocked Real Money balance
         public decimal RMTBalance { get; set; }
 
