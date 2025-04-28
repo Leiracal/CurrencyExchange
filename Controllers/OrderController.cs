@@ -25,7 +25,8 @@ namespace CurrencyExchange.Controllers
         // GET: Order
         public async Task<IActionResult> Index()
         {
-              return _context.orders != null ? 
+            
+            return _context.orders != null ? 
                           View(await _context.orders.ToListAsync()) :
                           Problem("Entity set 'ApplicationDbContext.orders'  is null.");
         }
@@ -51,7 +52,32 @@ namespace CurrencyExchange.Controllers
         // GET: Order/Create
         public IActionResult Create()
         {
+            //get logged in user & pass to view for pre-filled form field
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            ViewBag.UserID = userId;
             return View();
+        }
+
+        // POST: Order/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("UserID,Type,Price,Quantity,Remaining,Status")] Order order)
+        {
+            if (ModelState.IsValid)
+            {
+                // Set the CreatedAt property to the current date and time
+                order.CreatedAt = DateTime.UtcNow;
+
+                // Add the new order to the database
+                _context.Add(order);
+                await _context.SaveChangesAsync();
+
+                // Redirect to the Index action after successful creation
+                return RedirectToAction(nameof(Index));
+            }
+
+            // If the model is invalid, return to the Create view with the current data
+            return View(order);
         }
 
         // GET: Order/Edit/5
