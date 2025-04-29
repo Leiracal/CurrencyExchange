@@ -28,7 +28,7 @@ namespace CurrencyExchange.Controllers
             
             return _context.orders != null ? 
                           View(await _context.orders.ToListAsync()) :
-                          Problem("Entity set 'ApplicationDbContext.orders'  is null.");
+                          Problem("Entity set 'ApplicationDbContext.orders' is null.");
         }
 
         // GET: Order/Details/5
