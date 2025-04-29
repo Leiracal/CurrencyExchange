@@ -1,4 +1,7 @@
-﻿namespace CurrencyExchange.Models
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace CurrencyExchange.Models
 {
     public class Wallet
     {
@@ -7,10 +10,20 @@
         // Foreign key to user
         public int UserID { get; set; }
 
+        [Column(TypeName = "decimal(8,2)")]
+        [DisplayFormat(DataFormatString = "{0:C}")]
         public decimal RMTBalance { get; set; }
+
+        [Column(TypeName = "decimal(8,2)")]
+        [DisplayFormat(DataFormatString = "{0:C}")]
         public decimal RMTLocked {  get; set; }
 
+        [DisplayFormat(DataFormatString = "{0:C}")]
+        [Column(TypeName = "decimal(8,2)")]
         public int VCBalance { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:C}")]
+        [Column(TypeName = "decimal(8,2)")]
         public int VCLocked { get; set; }
     }
 }

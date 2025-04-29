@@ -8,8 +8,8 @@ namespace CurrencyExchange.Data
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
-        public DbSet<Wallet> wallets { get; set; } = null;
-        public DbSet<Order> orders { get; set; } = null;
-        public DbSet<Transaction> transactions { get; set; } = null;
+        public DbSet<Wallet> wallets { get; set; } = null!;
+        public DbSet<Order> orders { get; set; } = null!;
+        public DbSet<Transaction> transactions { get; set; } = null!;
     }
 }
