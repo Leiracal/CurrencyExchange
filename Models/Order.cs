@@ -7,7 +7,7 @@ namespace CurrencyExchange.Models
     {
         public int OrderID { get; set; }
         public int UserID { get; set; }
-        public string? Type { get; set; }
+        public string? Type { get; set; } //buy or sell
 
         [Column(TypeName = "decimal(8,2)")]
         [DisplayFormat(DataFormatString = "{0:C}")]
