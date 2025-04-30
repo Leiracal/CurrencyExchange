@@ -4,6 +4,7 @@ using CurrencyExchange.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CurrencyExchange.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250429232235_ID-fixes")]
+    partial class IDfixes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -33,12 +35,6 @@ namespace CurrencyExchange.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("OrderStatusID")
-                        .HasColumnType("int");
-
-                    b.Property<int>("OrderTypeID")
-                        .HasColumnType("int");
-
                     b.Property<decimal?>("Price")
                         .HasColumnType("decimal(8,2)");
 
@@ -48,88 +44,20 @@ namespace CurrencyExchange.Data.Migrations
                     b.Property<int>("Remaining")
                         .HasColumnType("int");
 
-                    b.Property<string>("UserID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("OrderID");
-
-                    b.HasIndex("OrderStatusID");
-
-                    b.HasIndex("OrderTypeID");
-
-                    b.ToTable("orders");
-                });
-
-            modelBuilder.Entity("CurrencyExchange.Models.OrderStatus", b =>
-                {
-                    b.Property<int>("OrderStatusID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderStatusID"), 1L, 1);
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("OrderStatusID");
-
-                    b.ToTable("orderStatuses");
-
-                    b.HasData(
-                        new
-                        {
-                            OrderStatusID = 1,
-                            Status = "Open"
-                        },
-                        new
-                        {
-                            OrderStatusID = 2,
-                            Status = "Partial"
-                        },
-                        new
-                        {
-                            OrderStatusID = 3,
-                            Status = "Filled"
-                        },
-                        new
-                        {
-                            OrderStatusID = 4,
-                            Status = "Cancelled"
-                        });
-                });
-
-            modelBuilder.Entity("CurrencyExchange.Models.OrderType", b =>
-                {
-                    b.Property<int>("OrderTypeID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderTypeID"), 1L, 1);
-
                     b.Property<string>("Type")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserID")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("OrderTypeID");
+                    b.HasKey("OrderID");
 
-                    b.ToTable("orderTypes");
-
-                    b.HasData(
-                        new
-                        {
-                            OrderTypeID = 1,
-                            Type = "Buy"
-                        },
-                        new
-                        {
-                            OrderTypeID = 2,
-                            Type = "Sell"
-                        });
+                    b.ToTable("orders");
                 });
 
             modelBuilder.Entity("CurrencyExchange.Models.Transaction", b =>
@@ -389,25 +317,6 @@ namespace CurrencyExchange.Data.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
-                });
-
-            modelBuilder.Entity("CurrencyExchange.Models.Order", b =>
-                {
-                    b.HasOne("CurrencyExchange.Models.OrderStatus", "Status")
-                        .WithMany()
-                        .HasForeignKey("OrderStatusID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CurrencyExchange.Models.OrderType", "Type")
-                        .WithMany()
-                        .HasForeignKey("OrderTypeID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Status");
-
-                    b.Navigation("Type");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

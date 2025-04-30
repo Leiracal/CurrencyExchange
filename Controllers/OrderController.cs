@@ -25,10 +25,11 @@ namespace CurrencyExchange.Controllers
         // GET: Order
         public async Task<IActionResult> Index()
         {
-            
-            return _context.orders != null ? 
-                          View(await _context.orders.ToListAsync()) :
-                          Problem("Entity set 'ApplicationDbContext.orders' is null.");
+            var applicationDbContext = _context.orders.Include(o => o.Type).Include(o => o.Status);
+            return View(await applicationDbContext.ToListAsync());
+            //return _context.orders != null ? 
+            //              View(await _context.orders.ToListAsync()) :
+            //              Problem("Entity set 'ApplicationDbContext.orders' is null.");
         }
 
         // GET: Order/Details/5
@@ -40,6 +41,8 @@ namespace CurrencyExchange.Controllers
             }
 
             var order = await _context.orders
+                .Include(o => o.Type)
+                .Include(o => o.Status)
                 .FirstOrDefaultAsync(m => m.OrderID == id);
             if (order == null)
             {

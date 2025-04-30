@@ -3,18 +3,21 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CurrencyExchange.Models
 {
+    /// <summary>
+    /// model for Transactions, when the virtual currency
+    /// in a Sell Order is used to fulfill a Buy Order.
+    /// </summary>
     public class Transaction
     {
         public int TransactionID { get; set; }
 
         public int OrderID { get; set; }
 
-        // 2 Id's aren't necessary here; each order has one ID, buy/sell is an attribute of that ID
         // OrderID for buy order
-        //public int BuyOrderID { get; set; }
+        public int BuyOrderID { get; set; }
 
         // OrderID for sell order
-        //public int SellOrderID { get; set; }
+        public int SellOrderID { get; set; }
 
         // Quantity of VC exchanged
         public int Quantity { get; set; }
