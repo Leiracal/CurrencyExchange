@@ -8,7 +8,6 @@ namespace CurrencyExchange.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
         /* TODO: create a method that accepts user inputs to create a new account and add it to the AspNetUsers database using IdentityUser methods.
          * DO NOT USE BUILT-IN REGISTER BUTTON BECAUSE IT WON'T ACCEPT USERNAMES */
         private readonly UserManager<IdentityUser> _userManager;
@@ -16,14 +15,45 @@ namespace CurrencyExchange.Controllers
         private readonly ApplicationDbContext _context; 
 
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
         {
-            _logger = logger;
+            _userManager = userManager;
+            _context = context;
         }
 
         public IActionResult Index()
         {
             return View();
+        }
+
+        public IActionResult RegisterUser()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RegisterUser([Bind("Username,Email,Password")] User user)
+        {
+            if (ModelState.IsValid)
+            {
+                string userName = user.Username;
+                var userIdentity = new IdentityUser(userName);
+                userIdentity.Email = user.Email;
+                string userPassword = user.Password;
+                IdentityResult checkUser = await _userManager.CreateAsync(userIdentity, userPassword);
+
+                if (checkUser.Succeeded)
+                {
+                    ViewData["Message"] += "User registered. ";
+                }
+                else
+                {
+                    ViewData["Message"] += "There was a problem! User could not be registered! ";
+                }
+            }
+
+            return View(nameof(Index));
         }
 
         public IActionResult Privacy()
