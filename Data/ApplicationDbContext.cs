@@ -10,6 +10,5 @@ namespace CurrencyExchange.Data
 
         public DbSet<Wallet> wallets { get; set; } = null!;
         public DbSet<Order> orders { get; set; } = null!;
-        public DbSet<Transaction> transactions { get; set; } = null!;
-    }
+        public DbSet<Transaction> transactions { get; set; } = null!;    }
 }
