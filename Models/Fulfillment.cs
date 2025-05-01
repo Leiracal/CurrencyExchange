@@ -1,63 +1,193 @@
-﻿using Microsoft.EntityFrameworkCore.SqlServer.Query.Internal;
+﻿using CurrencyExchange.Data;
+using Microsoft.EntityFrameworkCore.SqlServer.Query.Internal;
 
 namespace CurrencyExchange.Models
 {
     public class Fulfillment
     {
+        private readonly ApplicationDbContext _context;
+
+        public Fulfillment(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
         public void MatchOrders()
         {
             //query for any orders with null prices (market orders)
             //sorted by date ascending
+            var marketOrders = _context.orders
+            .Where(o => o.Price == null && o.Remaining > 0 && o.OrderStatusID < 3)
+            .OrderBy(o => o.CreatedAt)
+            .ToList();
 
-            //take oldest buy/sell market order
-            //if buy, compare remaining quantity with lowest sell orders
-            //if buy quantity <= lowest remaining sell order,
-            //this is the last transaction for this market buy order;
-            //else generate this transaction (this BuyOrderID,
-            //given SellOrder ID, lower quantity between the two)
-            //and proceed to next lowest buy order price
-
-            //if sell, compare quantity with lowest buy orders
-            //if sell quantity <= lowest remaining buy order,
-            //this is the last transaction for this market sell order;
-            //else generate this transaction (this SellOrderID,
-            //given BuyOrder ID, lower quantity between the two)
-            //and proceed to next lowest buy order price
+            //work through buy/sell market orders, oldest first
+            foreach (var order in marketOrders)
+            {
+                if (order.OrderTypeID == 1) // Buy
+                {
+                    MatchMarketBuyOrder(order);
+                }
+                else if (order.OrderTypeID == 2) // Sell
+                {
+                    MatchMarketSellOrder(order);
+                }
+            }
 
             //after market orders, check limit orders
-            //query for list of "open" and "partial" buy orders
+            //query for list of "open" and "partial" buy orders (OrderStatusID < 3)
             //sorted first by price decending, then date ascending
+            var buyLimitOrders = _context.orders
+                .Where(o => o.Price != null && o.OrderTypeID == 1 && o.Remaining > 0 && o.OrderStatusID < 3)
+                .OrderByDescending(o => o.Price)
+                .ThenBy(o => o.CreatedAt)
+                .ToList();
+
             //query for list of "open" and "partial" sell orders
             //sorted first by price decending, then date ascending
-            //if highest buy order >= lowest sell order, start matching
+            var sellLimitOrders = _context.orders
+                .Where(o => o.Price != null && o.OrderTypeID == 2 && o.Remaining > 0 && o.OrderStatusID < 3)
+                .OrderBy(o => o.Price)
+                .ThenBy(o => o.CreatedAt)
+                .ToList();
 
+            int buyIndex = 0;
+            int sellIndex = 0;
+            while (buyIndex < buyLimitOrders.Count && sellIndex < sellLimitOrders.Count)
+            {
+                var buy = buyLimitOrders[buyIndex];
+                var sell = sellLimitOrders[sellIndex];
+
+                //if highest buy order >= lowest sell order, start matching
+                if (buy.Price >= sell.Price)
+                {
+                    CreateTransaction(buy.OrderID, sell.OrderID);
+                    // update the index if any order is completely filled
+                    if (buy.Remaining == 0)
+                    {
+                        buyIndex++;
+                    }
+                    if (sell.Remaining == 0)
+                    {
+                        sellIndex++;
+                    }
+                }
+                //if highest buy limit order < lowest sell order, then stop.
+                else break;
+            }
+
+            _context.SaveChanges();
+        }
+
+        private void MatchMarketBuyOrder(Order buyOrder)
+        {
+            //if buy, compare remaining quantity with lowest sell orders
+            var sellOrders = _context.orders
+                .Where(o => o.OrderTypeID == 2 && o.Remaining > 0
+                    && o.OrderStatusID < 3 && o.Price != null)
+                .OrderBy(o => o.Price)
+                .ThenBy(o => o.CreatedAt)
+                .ToList();
+
+            foreach (var sellOrder in sellOrders)
+            {
+                //if buy quantity == 0 then we're done
+                if (buyOrder.Remaining == 0)
+                {
+                    break;
+                }
+                //else generate this transaction (this BuyOrderID, given SellOrder ID)
+                CreateTransaction(buyOrder.OrderID, sellOrder.OrderID);
+            }
+        }
+
+        private void MatchMarketSellOrder(Order sellOrder)
+        {
+            //if sell, compare quantity with lowest buy orders
+            var buyOrders = _context.orders
+                .Where(o => o.OrderTypeID == 1 && o.Remaining > 0 && o.OrderStatusID < 3 && o.Price != null)
+                .OrderByDescending(o => o.Price)
+                .ThenBy(o => o.CreatedAt)
+                .ToList();
+
+            foreach (var buyOrder in buyOrders)
+            {
+                //if sell quantity == 0 then we're done
+                if (sellOrder.Remaining == 0)
+                {
+                    break;
+                }
+                //else generate this transaction (given BuyOrderID, this SellOrder ID)
+                CreateTransaction(buyOrder.OrderID, sellOrder.OrderID);
+            }
+        }
+
+        public void CreateTransaction(int buyOrderID, int sellOrderID)
+        {
             //compare quantity of the two orders, note lowest
             //generate transaction (this BuyOrderID and SellOrderID,
             //lower quantity), then refer to which order zeroed out;
             //compare next buy order if buy was lowest, and vice versa.
 
-            //continue until time highest buy limit order <
-            //lowest sell order, then stop.
-        }
-        public void CreateTransaction(int BuyOrderID, int SellOrderID)
-        {
-            //compare prices, use lower one as transaction price
-            //compare remaining quantities, note which order is lower
+            var buy = _context.orders.Find(buyOrderID);
+            var sell = _context.orders.Find(sellOrderID);
+            var buyer = _context.wallets.Find(buy.UserID);
+            var seller = _context.wallets.Find(sell.UserID);
 
-            //decrement buyer RMTLocked by above (quantity * price)
-            //increment seller RMTBalance by same
-            
-            //lower quantity order:
-            //decrement remaining quantity to zero
-            //mark 'status' as 'filled'
+            if (buy == null || sell == null) return;
 
-            //other order:
-            //decrement remaining quantity by transaction quantity
-            //if remaining == 0, mark 'status' as 'filled'
-            //else if 'status' == 'open', mark 'status' as 'partial'
+            decimal price;
+            if (buy.Price.HasValue && sell.Price.HasValue)
+            {
+                price = Math.Min(buy.Price.Value, sell.Price.Value);
+            }
+            else if (buy.Price.HasValue)
+            {
+                price = buy.Price.Value;
+            }
+            else if (sell.Price.HasValue)
+            {
+                price = sell.Price.Value;
+            }
+            else
+                throw new InvalidOperationException("Cannot match two market orders with no price.");
+            var quantity = Math.Min(buy.Remaining, sell.Remaining);
+
+            // identify buyer/seller and exchange RMT
+            // buyer funds should be in RMTLocked
+            buyer.RMTLocked -= quantity * price;
+            seller.RMTBalance += quantity * price;
+
+            buy.Remaining -= quantity;
+            sell.Remaining -= quantity;
+
+            if(buy.Remaining == 0)
+            {
+                buy.OrderStatusID = 3;
+            } else
+            {
+                buy.OrderStatusID = 2;
+            }
+            if (sell.Remaining == 0)
+            {
+                sell.OrderStatusID = 3;
+            } else
+            {
+                sell.OrderStatusID = 2;
+            }
 
 
-            //generate transaction table entry with above data
+
+            var transaction = new Transaction
+            {
+                BuyOrderID = buy.OrderID,
+                SellOrderID = sell.OrderID,
+                Quantity = quantity,
+                Price = price,
+                //FulfilledAt = DateTime.UtcNow
+            };
+
+            _context.transactions.Add(transaction);
         }
     }
 }
