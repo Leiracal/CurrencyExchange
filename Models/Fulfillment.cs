@@ -12,6 +12,7 @@ namespace CurrencyExchange.Models
             _context = context;
         }
 
+        //MatchOrders() runs the fulfillment cycle, filling market orders, then limit orders
         public void MatchOrders()
         {
             //query for any orders with null prices (market orders)
@@ -24,13 +25,13 @@ namespace CurrencyExchange.Models
             //work through buy/sell market orders, oldest first
             foreach (var order in marketOrders)
             {
-                if (order.OrderTypeID == 1) // Buy
+                if (order.OrderTypeID == 1) //Buy
                 {
-                    MatchMarketBuyOrder(order);
+                    MatchMarketBuyOrder(order); //see method below
                 }
-                else if (order.OrderTypeID == 2) // Sell
+                else if (order.OrderTypeID == 2) //Sell
                 {
-                    MatchMarketSellOrder(order);
+                    MatchMarketSellOrder(order); //see method below
                 }
             }
 
@@ -53,6 +54,8 @@ namespace CurrencyExchange.Models
 
             int buyIndex = 0;
             int sellIndex = 0;
+
+            //start a loop that continues as long as orders of both types remain to be processed
             while (buyIndex < buyLimitOrders.Count && sellIndex < sellLimitOrders.Count)
             {
                 var buy = buyLimitOrders[buyIndex];
@@ -61,8 +64,8 @@ namespace CurrencyExchange.Models
                 //if highest buy order >= lowest sell order, start matching
                 if (buy.Price >= sell.Price)
                 {
-                    CreateTransaction(buy.OrderID, sell.OrderID);
-                    // update the index if any order is completely filled
+                    CreateTransaction(buy.OrderID, sell.OrderID); //see method below
+                    // If an order is filled, move on to the next order of that type
                     if (buy.Remaining == 0)
                     {
                         buyIndex++;
@@ -72,13 +75,15 @@ namespace CurrencyExchange.Models
                         sellIndex++;
                     }
                 }
-                //if highest buy limit order < lowest sell order, then stop.
+                //if highest buy limit order < lowest sell order, then stop the loop.
                 else break;
             }
 
+            //at the end of fulfillment, save all changes to the database.
             _context.SaveChanges();
         }
 
+        //MatchMarketBuyOrder() fills a given buy order with the list of sell orders
         private void MatchMarketBuyOrder(Order buyOrder)
         {
             //if buy, compare remaining quantity with lowest sell orders
@@ -97,10 +102,11 @@ namespace CurrencyExchange.Models
                     break;
                 }
                 //else generate this transaction (this BuyOrderID, given SellOrder ID)
-                CreateTransaction(buyOrder.OrderID, sellOrder.OrderID);
+                CreateTransaction(buyOrder.OrderID, sellOrder.OrderID); //see method below
             }
         }
 
+        //MatchMarketSellOrder() fills a given sell order with the list of buy orders
         private void MatchMarketSellOrder(Order sellOrder)
         {
             //if sell, compare quantity with lowest buy orders
@@ -122,20 +128,23 @@ namespace CurrencyExchange.Models
             }
         }
 
+        //CreateTransaction exchanges VC and RMT and creates a transaction table entry.
         public void CreateTransaction(int buyOrderID, int sellOrderID)
         {
+
+            var buy = _context.orders.Find(buyOrderID);
+            var sell = _context.orders.Find(sellOrderID);
+
+            if (buy == null || sell == null) return;
+
+            //if we have a valid buy and sell order, get the users' wallets
+            var buyer = _context.wallets.Find(buy.UserID);
+            var seller = _context.wallets.Find(sell.UserID);
+
             //compare quantity of the two orders, note lowest
             //generate transaction (this BuyOrderID and SellOrderID,
             //lower quantity), then refer to which order zeroed out;
             //compare next buy order if buy was lowest, and vice versa.
-
-            var buy = _context.orders.Find(buyOrderID);
-            var sell = _context.orders.Find(sellOrderID);
-            var buyer = _context.wallets.Find(buy.UserID);
-            var seller = _context.wallets.Find(sell.UserID);
-
-            if (buy == null || sell == null) return;
-
             decimal price;
             if (buy.Price.HasValue && sell.Price.HasValue)
             {
@@ -158,6 +167,8 @@ namespace CurrencyExchange.Models
             buyer.RMTLocked -= quantity * price;
             seller.RMTBalance += quantity * price;
 
+            //TODO: If price < buy.Price, unlock the difference * quantity for buyer
+
             buy.Remaining -= quantity;
             sell.Remaining -= quantity;
 
@@ -175,8 +186,6 @@ namespace CurrencyExchange.Models
             {
                 sell.OrderStatusID = 2;
             }
-
-
 
             var transaction = new Transaction
             {
