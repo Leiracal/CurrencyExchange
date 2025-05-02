@@ -3,6 +3,7 @@ using CurrencyExchange.Data;
 using CurrencyExchange.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CurrencyExchange.Controllers
 {
@@ -42,9 +43,21 @@ namespace CurrencyExchange.Controllers
                 userIdentity.Email = user.Email;
                 string userPassword = user.Password;
                 IdentityResult checkUser = await _userManager.CreateAsync(userIdentity, userPassword);
-
+                
+                //if create user, don't actually bind user and wallet, let the user.id match to the wallet.userID
                 if (checkUser.Succeeded)
                 {
+                    //new users have new wallets
+                    Wallet wallet = new Wallet
+                    {
+                        RMTBalance = 10m,
+                        RMTLocked = 0.0m,
+                        VCBalance = 1000,
+                        VCLocked = 0,
+                        UserID = userIdentity.Id,
+                    };
+                    _context.Add(wallet);
+                    await _context.SaveChangesAsync();
                     ViewData["Message"] += "User registered. ";
                 }
                 else
