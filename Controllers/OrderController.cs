@@ -66,6 +66,22 @@ namespace CurrencyExchange.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("UserID,Type,Price,Quantity,Remaining,Status")] Order order)
         {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var orderType = _context.orderTypes.FirstOrDefault(o => o.Type == order.Type.Type);
+            var realMoneyBalance = await _context.wallets.Where(w => w.UserID == userId)
+                .Select(w => w.RMTBalance).FirstOrDefaultAsync();
+            var bobcatBalance = await _context.wallets.Where(w => w.UserID == userId)
+                .Select(w => w.VCBalance).FirstOrDefaultAsync();
+
+            // Check if the user has sufficient balance for the order
+            if (orderType != null && orderType.Type == "Buy" && realMoneyBalance < order.Price * order.Quantity)
+            {
+                ModelState.AddModelError("Price", "Insufficient RMT balance for this order.");
+            }
+            else if (orderType != null && orderType.Type == "Sell" && bobcatBalance < order.Price * order.Quantity)
+            {
+                ModelState.AddModelError("Price", "Insufficient VC balance for this order.");
+            }
             if (ModelState.IsValid)
             {
                 // Set the CreatedAt property to the current date and time
