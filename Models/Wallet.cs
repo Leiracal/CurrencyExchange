@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CurrencyExchange.Models
@@ -8,22 +9,24 @@ namespace CurrencyExchange.Models
         public int WalletID { get; set; }
 
         // Foreign key to user
+        [DisplayName("User ID")]
+        [Required(ErrorMessage = "User ID is required")]
         public string UserID { get; set; }
 
         [Column(TypeName = "decimal(8,2)")]
         [DisplayFormat(DataFormatString = "{0:C}")]
-        public decimal RMTBalance { get; set; }
+        public decimal? RMTBalance { get; set; }
 
         [Column(TypeName = "decimal(8,2)")]
         [DisplayFormat(DataFormatString = "{0:C}")]
-        public decimal RMTLocked { get; set; }
+        public decimal? RMTLocked { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:C}")]
         [Column(TypeName = "decimal(8,2)")]
-        public int VCBalance { get; set; }
+        public int? VCBalance { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:C}")]
         [Column(TypeName = "decimal(8,2)")]
-        public int VCLocked { get; set; }
+        public int? VCLocked { get; set; }
     }
 }

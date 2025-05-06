@@ -67,18 +67,23 @@ namespace CurrencyExchange.Controllers
         public async Task<IActionResult> Create([Bind("UserID,Type,Price,Quantity,Remaining,Status")] Order order)
         {
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            var orderType = _context.orderTypes.FirstOrDefault(o => o.Type == order.Type.Type);
-            var realMoneyBalance = await _context.wallets.Where(w => w.UserID == userId)
-                .Select(w => w.RMTBalance).FirstOrDefaultAsync();
-            var bobcatBalance = await _context.wallets.Where(w => w.UserID == userId)
-                .Select(w => w.VCBalance).FirstOrDefaultAsync();
+            OrderType? orderType = _context.orderTypes.FirstOrDefault(o => o.Type == order.Type.Type);
+            Wallet? wallet = await _context.wallets.FirstOrDefaultAsync(w => w.UserID == userId);
+            decimal? realMoneyBalance = wallet.RMTBalance;
+            int? bobcatBalance = wallet.VCBalance;
+            decimal? realMoneyLocked = wallet.RMTLocked;
+            int? bobcatLocked = wallet.VCLocked;
+
+            decimal? realMoneyOrderTotal = order.Price * order.Quantity;
+            int? bobcatOrderTotal = order.Quantity;
+
 
             // Check if the user has sufficient balance for the order
-            if (orderType != null && orderType.Type == "Buy" && realMoneyBalance < order.Price * order.Quantity)
+            if (orderType != null && orderType.Type == "Buy" && wallet.RMTBalance < realMoneyOrderTotal)
             {
                 ModelState.AddModelError("Price", "Insufficient RMT balance for this order.");
             }
-            else if (orderType != null && orderType.Type == "Sell" && bobcatBalance < order.Price * order.Quantity)
+            else if (orderType != null && orderType.Type == "Sell" && bobcatBalance < bobcatOrderTotal)
             {
                 ModelState.AddModelError("Price", "Insufficient VC balance for this order.");
             }
@@ -86,6 +91,18 @@ namespace CurrencyExchange.Controllers
             {
                 // Set the CreatedAt property to the current date and time
                 order.CreatedAt = DateTime.UtcNow;
+
+                // Remove real money or virtual currency from the user's wallet and lock it
+                if (orderType != null && orderType.Type == "Buy")
+                {
+                    wallet.RMTBalance -= realMoneyOrderTotal;
+                    wallet.RMTLocked += realMoneyOrderTotal;
+                }
+                else if (orderType != null && orderType.Type == "Sell")
+                {
+                    wallet.VCBalance -= bobcatOrderTotal;
+                    wallet.VCLocked += bobcatOrderTotal;
+                }
 
                 // Add the new order to the database
                 _context.Add(order);
