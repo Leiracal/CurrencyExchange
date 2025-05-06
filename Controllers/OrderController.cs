@@ -9,6 +9,7 @@ using CurrencyExchange.Data;
 using CurrencyExchange.Models;
 using SQLitePCL;
 using Microsoft.Extensions.Configuration.UserSecrets;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 
 namespace CurrencyExchange.Controllers
@@ -56,6 +57,7 @@ namespace CurrencyExchange.Controllers
         public IActionResult Create()
         {
             //get logged in user & pass to view for pre-filled form field
+            //TODO: update this to work with new user registration
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             ViewBag.UserID = userId;
             return View();
@@ -66,6 +68,7 @@ namespace CurrencyExchange.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("UserID,Type,Price,Quantity,Remaining,Status")] Order order)
         {
+            // TODO: update this to work with new user registration #2
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             OrderType? orderType = _context.orderTypes.FirstOrDefault(o => o.Type == order.Type.Type);
             Wallet? wallet = await _context.wallets.FirstOrDefaultAsync(w => w.UserID == userId);
