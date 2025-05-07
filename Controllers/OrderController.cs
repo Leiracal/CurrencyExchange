@@ -107,6 +107,9 @@ namespace CurrencyExchange.Controllers
                     wallet.VCLocked += bobcatOrderTotal;
                 }
 
+                order.Remaining = order.Quantity;
+                ViewData["OrderTypeID"] = new SelectList(_context.orderTypes, "OrderTypeID", "Type", order.OrderTypeID);
+
                 // Add the new order to the database
                 _context.Add(order);
                 await _context.SaveChangesAsync();

@@ -16,7 +16,7 @@
             <!--TODO: UserID determined by the logged in user, not part of the form-->
             <div class="form-group">
                 <label asp-for="UserID" class="control-label"></label>
-                <input asp-for="UserID" class="form-control" value=@ViewBag.UserID />
+                <input asp-for="UserID" class="form-control" value=@ViewBag.UserID readonly/>
                 <span asp-validation-for="UserID" class="text-danger"></span>
             </div>
             <!--TODO: Type should be a drop-down for "Buy" and "Sell" (or radio buttons)-->
@@ -45,7 +45,7 @@
             <!--TODO: Status should be handled in controller when adding order (= Open)-->
             <div class="form-group">
                 <label asp-for="Status" class="control-label"></label>
-                <input asp-for="Status" class="form-control" value="Open"/>
+                <input asp-for="Status" class="form-control"/>
                 <span asp-validation-for="Status" class="text-danger"></span>
             </div>
             <!--TODO: CreatedAt should be handled in controller when adding order (= now)-->
