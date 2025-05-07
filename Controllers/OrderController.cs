@@ -28,9 +28,6 @@ namespace CurrencyExchange.Controllers
         {
             var applicationDbContext = _context.orders.Include(o => o.Type).Include(o => o.Status);
             return View(await applicationDbContext.ToListAsync());
-            //return _context.orders != null ? 
-            //              View(await _context.orders.ToListAsync()) :
-            //              Problem("Entity set 'ApplicationDbContext.orders' is null.");
         }
 
         // GET: Order/Details/5
@@ -56,10 +53,8 @@ namespace CurrencyExchange.Controllers
         // GET: Order/Create
         public IActionResult Create()
         {
-            //get logged in user & pass to view for pre-filled form field
-            //TODO: update this to work with new user registration
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            ViewBag.UserID = userId;
+            //get order types for dropdowns
+            ViewData["OrderTypeID"] = new SelectList(_context.orderTypes, "OrderTypeID", "Type");   
             return View();
         }
 
@@ -68,10 +63,21 @@ namespace CurrencyExchange.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("UserID,Type,Price,Quantity,Remaining,Status")] Order order)
         {
-            // TODO: update this to work with new user registration #2
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            OrderType? orderType = _context.orderTypes.FirstOrDefault(o => o.Type == order.Type.Type);
-            Wallet? wallet = await _context.wallets.FirstOrDefaultAsync(w => w.UserID == userId);
+            
+            // Get current logged-in user object
+            var currentUser = User.Identity;
+            if (currentUser != null && currentUser.IsAuthenticated)
+            {
+                order.UserID = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                order.UserName = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
+            }
+            else
+            {
+                ModelState.AddModelError("UserID", "User is not authenticated.");
+                return View(order);
+            }
+
+            Wallet? wallet = await _context.wallets.FirstOrDefaultAsync(w => w.UserID == order.UserID);
             decimal? realMoneyBalance = wallet.RMTBalance;
             int? bobcatBalance = wallet.VCBalance;
             decimal? realMoneyLocked = wallet.RMTLocked;
@@ -79,14 +85,14 @@ namespace CurrencyExchange.Controllers
 
             decimal? realMoneyOrderTotal = order.Price * order.Quantity;
             int? bobcatOrderTotal = order.Quantity;
-
+            
 
             // Check if the user has sufficient balance for the order
-            if (orderType != null && orderType.Type == "Buy" && wallet.RMTBalance < realMoneyOrderTotal)
+            if (order.Type != null && order.Type.Type == "Buy" && realMoneyBalance < realMoneyOrderTotal)
             {
                 ModelState.AddModelError("Price", "Insufficient RMT balance for this order.");
             }
-            else if (orderType != null && orderType.Type == "Sell" && bobcatBalance < bobcatOrderTotal)
+            else if (order.Type != null && order.Type.Type == "Sell" && bobcatBalance < bobcatOrderTotal)
             {
                 ModelState.AddModelError("Price", "Insufficient VC balance for this order.");
             }
@@ -96,19 +102,22 @@ namespace CurrencyExchange.Controllers
                 order.CreatedAt = DateTime.UtcNow;
 
                 // Remove real money or virtual currency from the user's wallet and lock it
-                if (orderType != null && orderType.Type == "Buy")
+                if (order.Type != null && order.Type.Type == "Buy")
                 {
                     wallet.RMTBalance -= realMoneyOrderTotal;
                     wallet.RMTLocked += realMoneyOrderTotal;
                 }
-                else if (orderType != null && orderType.Type == "Sell")
+                else if (order.Type != null && order.Type.Type == "Sell")
                 {
                     wallet.VCBalance -= bobcatOrderTotal;
                     wallet.VCLocked += bobcatOrderTotal;
                 }
 
+                // Set the Remaining property to the Quantity
                 order.Remaining = order.Quantity;
-                ViewData["OrderTypeID"] = new SelectList(_context.orderTypes, "OrderTypeID", "Type", order.OrderTypeID);
+
+                // Set Order Status to "Open"
+                order.Status = await _context.orderStatuses.FirstOrDefaultAsync(s => s.Status == "Open");
 
                 // Add the new order to the database
                 _context.Add(order);
@@ -119,6 +128,8 @@ namespace CurrencyExchange.Controllers
             }
 
             // If the model is invalid, return to the Create view with the current data
+            // and the order type list for the dropdown
+            ViewData["OrderTypeID"] = new SelectList(_context.orderTypes, "OrderTypeID", "Type", order.OrderTypeID);
             return View(order);
         }
 
