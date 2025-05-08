@@ -12,9 +12,10 @@
 <div class="row">
     <div class="col-md-4">
         <form enctype="multipart/form-data" asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div asp-validation-summary="All" class="text-danger"></div>
            
             <!--TODO: Type should be a drop-down for "Buy" and "Sell" (or radio buttons)-->
+            @* Fixed! In Order Controller *@
             <div class="form-group">
                 <label asp-for="Type" class="control-label"></label>
                 <select asp-for="OrderTypeID" class="form-control" asp-items="ViewBag.OrderTypeID"></select>

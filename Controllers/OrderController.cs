@@ -10,10 +10,12 @@ using CurrencyExchange.Models;
 using SQLitePCL;
 using Microsoft.Extensions.Configuration.UserSecrets;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Microsoft.AspNetCore.Authorization;
 
 
 namespace CurrencyExchange.Controllers
 {
+    //[Authorize]
     public class OrderController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -76,15 +78,41 @@ namespace CurrencyExchange.Controllers
                 ModelState.AddModelError("UserID", "User is not authenticated.");
             }
 
+            // Updated code to handle potential null reference for 'wallet'
             Wallet? wallet = await _context.wallets.FirstOrDefaultAsync(w => w.UserID == order.UserID);
-            decimal? realMoneyBalance = wallet.RMTBalance;
-            int? bobcatBalance = wallet.VCBalance;
-            decimal? realMoneyLocked = wallet.RMTLocked;
-            int? bobcatLocked = wallet.VCLocked;
 
-            decimal? realMoneyOrderTotal = order.Price * order.Quantity;
-            int? bobcatOrderTotal = order.Quantity;
+            decimal? realMoneyBalance = 0;
+            int? bobcatBalance = 0;
+            decimal? realMoneyLocked = 0;
+            int? bobcatLocked = 0;
+            decimal? realMoneyOrderTotal = 0;
+            int? bobcatOrderTotal = 0;
+
+            if (wallet != null)
+            {
+                realMoneyBalance = wallet!.RMTBalance ?? 0;
+                bobcatBalance = wallet.VCBalance ?? 0;
+                realMoneyLocked = wallet.RMTLocked ?? 0;
+                bobcatLocked = wallet.VCLocked ?? 0;
+
+                realMoneyOrderTotal = order.Price * order.Quantity;
+                bobcatOrderTotal = order.Quantity;
+            }
+            else
+            {
+                ModelState.AddModelError("Wallet", "Wallet not found for the current user.");
+            }
+
             
+            // Check if the user has sufficient balance for the order
+            if (order.Type != null && order.Type.Type == "Buy" && realMoneyBalance < realMoneyOrderTotal)
+            {
+                ModelState.AddModelError("Price", "Insufficient RMT balance for this order.");
+            }
+            else if (order.Type != null && order.Type.Type == "Sell" && bobcatBalance < bobcatOrderTotal)
+            {
+                ModelState.AddModelError("Price", "Insufficient VC balance for this order.");
+            }
 
             // Check if the user has sufficient balance for the order
             if (order.Type != null && order.Type.Type == "Buy" && realMoneyBalance < realMoneyOrderTotal)
@@ -128,7 +156,7 @@ namespace CurrencyExchange.Controllers
 
             // If the model is invalid, return to the Create view with the current data
             // and the order type list for the dropdown
-            ViewData["OrderTypeID"] = new SelectList(_context.orderTypes, "OrderTypeID", "Type", order.Type.Type);
+            ViewData["OrderTypeID"] = new SelectList(_context.orderTypes, "OrderTypeID", "Type", order.Type);
             return View(order);
         }
 
