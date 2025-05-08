@@ -63,7 +63,7 @@ namespace CurrencyExchange.Controllers
         // POST: Order/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("UserID,Type,Price,Quantity,Remaining,Status")] Order order)
+        public async Task<IActionResult> Create([Bind("OrderID,UserID,OrderTypeID,Price,Quantity,Remaining,Status")] Order order)
         {
             
             // Get current logged-in user object
@@ -135,13 +135,6 @@ namespace CurrencyExchange.Controllers
                 // Set Order Status to "Open"
                 order.Status = await _context.orderStatuses.FirstOrDefaultAsync(s => s.Status == "Open");
 
-                //TODO : Add logic to set the OrderTypeID based on the order type
-                
-                var orderType = await _context.orderTypes.FirstOrDefaultAsync(t => t.Type == order.Type.Type);
-                
-                order.OrderTypeID = orderType.OrderTypeID;
-                
-
                 // Add the new order to the database
                 _context.Add(order);
                 await _context.SaveChangesAsync();
@@ -152,7 +145,7 @@ namespace CurrencyExchange.Controllers
 
             // If the model is invalid, return to the Create view with the current data
             // and the order type list for the dropdown
-            ViewData["OrderTypeID"] = new SelectList(_context.orderTypes, "OrderTypeID", "Type", order.Type);
+            ViewData["OrderTypeID"] = new SelectList(_context.orderTypes, "OrderTypeID", "Type", order.OrderTypeID);
             return View(order);
         }
 
