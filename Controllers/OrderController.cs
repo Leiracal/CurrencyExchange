@@ -74,7 +74,6 @@ namespace CurrencyExchange.Controllers
             else
             {
                 ModelState.AddModelError("UserID", "User is not authenticated.");
-                return View(order);
             }
 
             Wallet? wallet = await _context.wallets.FirstOrDefaultAsync(w => w.UserID == order.UserID);
@@ -129,7 +128,7 @@ namespace CurrencyExchange.Controllers
 
             // If the model is invalid, return to the Create view with the current data
             // and the order type list for the dropdown
-            ViewData["OrderTypeID"] = new SelectList(_context.orderTypes, "OrderTypeID", "Type", order.OrderTypeID);
+            ViewData["OrderTypeID"] = new SelectList(_context.orderTypes, "OrderTypeID", "Type", order.Type.Type);
             return View(order);
         }
 
