@@ -1,0 +1,89 @@
+﻿@model DashboardViewModel
+@{
+    ViewBag.Title = "BCEX User Dashboard";
+}
+
+<p>@ViewData["Message"]</p>
+
+<h1>User Dashboard</h1>
+
+<h2>Wallet Balances</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Wallet ID</th>
+            <th>RMT Balance</th>
+            <th>RMT [Locked]</th>
+            <th>VC Balance</th>
+            <th>VC [Locked]</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var wallet in Model.Wallets)
+        {
+            <tr>
+                <td>@wallet.WalletID</td>
+                <td>@wallet.RMTBalance</td>
+                <td>@wallet.RMTLocked</td>
+                <td>@wallet.VCBalance</td>
+                <td>@wallet.VCLocked</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h2>Orders</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Order ID</th>
+            <th>Type</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Remaining</th>
+            <th>Status</th>
+            <th>Created</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var order in Model.Orders)
+        {
+            <tr>
+                <td>@order.OrderID</td>
+                <td>@order.Type</td>
+                <td>@order.Price</td>
+                <td>@order.Quantity</td>
+                <td>@order.Remaining</td>
+                <td>@order.Status</td>
+                <td>@order.CreatedAt.ToString("g")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h2>Transactions</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Transaction ID</th>
+            <th>Buy Order ID</th>
+            <th>Sell Order ID</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Fulfilled</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var tx in Model.Transactions)
+        {
+            <tr>
+                <td>@tx.TransactionID</td>
+                <td>@tx.BuyOrderID</td>
+                <td>@tx.SellOrderID</td>
+                <td>@tx.Quantity</td>
+                <td>@tx.Price</td>
+                <td>@tx.FulfilledAt.ToString("g")</td>
+            </tr>
+        }
+    </tbody>
+</table>
