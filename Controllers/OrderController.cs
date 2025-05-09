@@ -65,7 +65,7 @@ namespace CurrencyExchange.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("OrderID,UserID,OrderTypeID,Price,Quantity,Remaining,Status")] Order order)
         {
-            
+
             // Get current logged-in user object
             var currentUser = User.Identity;
             if (currentUser != null && currentUser.IsAuthenticated)
@@ -104,11 +104,11 @@ namespace CurrencyExchange.Controllers
             }
 
             // Check if the user has sufficient balance for the order
-            if (order.Type != null && order.Type.ToString() == "Buy" && realMoneyBalance < realMoneyOrderTotal)
+            if (order.Type != null && order.Type.Type == "Buy" && realMoneyBalance < realMoneyOrderTotal)
             {
                 ModelState.AddModelError("Price", "Insufficient RMT balance for this order.");
             }
-            else if (order.Type != null && order.Type.ToString() == "Sell" && bobcatBalance < bobcatOrderTotal)
+            else if (order.Type != null && order.Type.Type == "Sell" && bobcatBalance < bobcatOrderTotal)
             {
                 ModelState.AddModelError("Price", "Insufficient VC balance for this order.");
             }
@@ -118,12 +118,12 @@ namespace CurrencyExchange.Controllers
                 order.CreatedAt = DateTime.UtcNow;
 
                 // Remove real money or virtual currency from the user's wallet and lock it
-                if (order.Type != null && order.Type.ToString() == "Buy")
+                if (order.Type != null && order.Type.Type == "Buy")
                 {
                     wallet.RMTBalance -= realMoneyOrderTotal;
                     wallet.RMTLocked += realMoneyOrderTotal;
                 }
-                else if (order.Type != null && order.Type.ToString() == "Sell")
+                else if (order.Type != null && order.Type.Type == "Sell")
                 {
                     wallet.VCBalance -= bobcatOrderTotal;
                     wallet.VCLocked += bobcatOrderTotal;
