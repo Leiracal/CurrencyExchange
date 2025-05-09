@@ -28,8 +28,19 @@ namespace CurrencyExchange.Controllers
         // GET: Order
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.orders.Include(o => o.Type).Include(o => o.Status);
-            return View(await applicationDbContext.ToListAsync());
+            var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                return Unauthorized();
+            }
+
+            var userOrders = _context.orders
+                .Where(o => o.UserID == currentUserId)
+                .Include(o => o.Type)
+                .Include(o => o.Status);
+
+            return View(await userOrders.ToListAsync());
         }
 
         // GET: Order/Details/5
@@ -116,7 +127,7 @@ namespace CurrencyExchange.Controllers
             if (ModelState.IsValid)
             {
                 // Set the CreatedAt property to the current date and time
-                order.CreatedAt = DateTime.UtcNow;
+                order.CreatedAt = DateTime.Now;
 
                 // Remove real money or virtual currency from the user's wallet and lock it
                 if (order.OrderTypeID != null && order.OrderTypeID == 1) //buy
