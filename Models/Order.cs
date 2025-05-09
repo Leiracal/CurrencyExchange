@@ -29,7 +29,8 @@ namespace CurrencyExchange.Models
         public int Quantity { get; set; }
 
         // Fix: Change Remaining to a property with a getter that calculates its value dynamically  
-        public int Remaining { get; set; } 
+        // Tranasaction will update this value so it has to be a property
+        public int Remaining { get; set; }
 
         public int OrderStatusID { get; set; }
         public OrderStatus? Status { get; set; }

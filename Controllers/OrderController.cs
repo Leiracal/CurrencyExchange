@@ -15,7 +15,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace CurrencyExchange.Controllers
 {
-    //[Authorize]
+    [Authorize]
     public class OrderController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -104,11 +104,12 @@ namespace CurrencyExchange.Controllers
             }
 
             // Check if the user has sufficient balance for the order
-            if (order.Type != null && order.Type.Type == "Buy" && realMoneyBalance < realMoneyOrderTotal)
+            // ordertype 1 = buy, ordertype 2 = sell
+            if (order.OrderTypeID != null && order.OrderTypeID == 1 && realMoneyBalance < realMoneyOrderTotal)
             {
                 ModelState.AddModelError("Price", "Insufficient RMT balance for this order.");
             }
-            else if (order.Type != null && order.Type.Type == "Sell" && bobcatBalance < bobcatOrderTotal)
+            else if (order.OrderTypeID != null && order.OrderTypeID == 2 && bobcatBalance < bobcatOrderTotal)
             {
                 ModelState.AddModelError("Price", "Insufficient VC balance for this order.");
             }
@@ -118,12 +119,12 @@ namespace CurrencyExchange.Controllers
                 order.CreatedAt = DateTime.UtcNow;
 
                 // Remove real money or virtual currency from the user's wallet and lock it
-                if (order.Type != null && order.Type.Type == "Buy")
+                if (order.OrderTypeID != null && order.OrderTypeID == 1) //buy
                 {
                     wallet.RMTBalance -= realMoneyOrderTotal;
                     wallet.RMTLocked += realMoneyOrderTotal;
                 }
-                else if (order.Type != null && order.Type.Type == "Sell")
+                else if (order.OrderTypeID != null && order.OrderTypeID == 2) //sell
                 {
                     wallet.VCBalance -= bobcatOrderTotal;
                     wallet.VCLocked += bobcatOrderTotal;
