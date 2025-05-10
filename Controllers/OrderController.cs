@@ -139,6 +139,23 @@ namespace CurrencyExchange.Controllers
                 _context.Add(order);
                 await _context.SaveChangesAsync();
 
+                // Run Fulfillment so that orders are matched
+                var fulfillment = new Fulfillment(_context);
+                int txProcessed = fulfillment.MatchOrders();
+                if (txProcessed == 0)
+                {
+                    ViewData["Message"] += "Order placed. Check Dashboard later to see if your order gets filled. ";
+                } else if (txProcessed == null)
+                {
+                    ViewData["Message"] += "There was a problem running Fulfillment. ";
+                } else
+                {
+                    ViewData["Message"] += "Order placed. There were " + txProcessed.ToString()
+                        + "transactions completed as a result of your order. " +
+                        "Please check Dashboard for more information.";
+                }
+                ViewBag.txProcessed = txProcessed;
+
                 // Redirect to the Index action after successful creation
                 return RedirectToAction(nameof(Index));
             }
@@ -162,6 +179,14 @@ namespace CurrencyExchange.Controllers
             {
                 return NotFound();
             }
+
+            //If the currently logged in UserID is not the Order's UserID, they can't edit it            
+            var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (order.UserID != currentUserId)
+            {
+                return Forbid();
+            }
+
             return View(order);
         }
 
@@ -176,6 +201,16 @@ namespace CurrencyExchange.Controllers
             {
                 return NotFound();
             }
+
+            // Authentication checking: we're pulling up the original order to make sure it's yours
+            var existingOrder = await _context.orders.AsNoTracking().FirstOrDefaultAsync(o => o.OrderID == id);
+            var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (existingOrder == null || existingOrder.UserID != currentUserId)
+            {
+                return Forbid(); // Or return Unauthorized();
+            }
+
 
             if (ModelState.IsValid)
             {
@@ -215,6 +250,13 @@ namespace CurrencyExchange.Controllers
                 return NotFound();
             }
 
+            //If the currently logged in UserID is not the Order's UserID, they can't delete it            
+            var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (order.UserID != currentUserId)
+            {
+                return Forbid();
+            }
+
             return View(order);
         }
 
@@ -227,6 +269,16 @@ namespace CurrencyExchange.Controllers
             {
                 return Problem("Entity set 'ApplicationDbContext.orders'  is null.");
             }
+
+            // Authentication checking: we're pulling up the original order to make sure it's yours
+            var existingOrder = await _context.orders.FindAsync(id);
+            var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (existingOrder == null || existingOrder.UserID != currentUserId)
+            {
+                return Forbid(); // Or return Unauthorized();
+            }
+
             var order = await _context.orders.FindAsync(id);
             if (order != null)
             {

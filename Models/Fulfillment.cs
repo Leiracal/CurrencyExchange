@@ -13,8 +13,10 @@ namespace CurrencyExchange.Models
         }
 
         //MatchOrders() runs the fulfillment cycle, filling market orders, then limit orders
-        public void MatchOrders()
+        //returns an int for number of transactions processed
+        public int MatchOrders()
         {
+            int tx = 0;
             //query for any orders with null prices (market orders)
             //sorted by date ascending
             var marketOrders = _context.orders
@@ -27,11 +29,11 @@ namespace CurrencyExchange.Models
             {
                 if (order.OrderTypeID == 1) //Buy
                 {
-                    MatchMarketBuyOrder(order); //see method below
+                    tx += MatchMarketBuyOrder(order); //see method below
                 }
                 else if (order.OrderTypeID == 2) //Sell
                 {
-                    MatchMarketSellOrder(order); //see method below
+                    tx += MatchMarketSellOrder(order); //see method below
                 }
             }
 
@@ -64,7 +66,7 @@ namespace CurrencyExchange.Models
                 //if highest buy order >= lowest sell order, start matching
                 if (buy.Price >= sell.Price)
                 {
-                    CreateTransaction(buy.OrderID, sell.OrderID); //see method below
+                    tx += CreateTransaction(buy.OrderID, sell.OrderID); //see method below
                     // If an order is filled, move on to the next order of that type
                     if (buy.Remaining == 0)
                     {
@@ -81,11 +83,15 @@ namespace CurrencyExchange.Models
 
             //at the end of fulfillment, save all changes to the database.
             _context.SaveChanges();
+
+            return tx;
         }
 
         //MatchMarketBuyOrder() fills a given buy order with the list of sell orders
-        private void MatchMarketBuyOrder(Order buyOrder)
+        //returns number of transactions issued
+        private int MatchMarketBuyOrder(Order buyOrder)
         {
+            int tx = 0;
             //if buy, compare remaining quantity with lowest sell orders
             var sellOrders = _context.orders
                 .Where(o => o.OrderTypeID == 2 && o.Remaining > 0
@@ -102,13 +108,16 @@ namespace CurrencyExchange.Models
                     break;
                 }
                 //else generate this transaction (this BuyOrderID, given SellOrder ID)
-                CreateTransaction(buyOrder.OrderID, sellOrder.OrderID); //see method below
+                tx += CreateTransaction(buyOrder.OrderID, sellOrder.OrderID); //see method below
             }
+
+            return tx;
         }
 
         //MatchMarketSellOrder() fills a given sell order with the list of buy orders
-        private void MatchMarketSellOrder(Order sellOrder)
+        private int MatchMarketSellOrder(Order sellOrder)
         {
+            int tx = 0;
             //if sell, compare quantity with lowest buy orders
             var buyOrders = _context.orders
                 .Where(o => o.OrderTypeID == 1 && o.Remaining > 0 && o.OrderStatusID < 3 && o.Price != null)
@@ -124,31 +133,39 @@ namespace CurrencyExchange.Models
                     break;
                 }
                 //else generate this transaction (given BuyOrderID, this SellOrder ID)
-                CreateTransaction(buyOrder.OrderID, sellOrder.OrderID);
+                tx += CreateTransaction(buyOrder.OrderID, sellOrder.OrderID);
             }
+
+            return tx;
         }
 
         //CreateTransaction exchanges VC and RMT and creates a transaction table entry.
-        public void CreateTransaction(int buyOrderID, int sellOrderID)
+        private int CreateTransaction(int buyOrderID, int sellOrderID)
         {
-
             var buy = _context.orders.Find(buyOrderID);
             var sell = _context.orders.Find(sellOrderID);
 
-            if (buy == null || sell == null) return;
+            //if we're somehow missing a buy or sell order, this transaction is void
+            if (buy == null || sell == null) return 0;
 
             //if we have a valid buy and sell order, get the users' wallets
-            var buyer = _context.wallets.Find(buy.UserID);
-            var seller = _context.wallets.Find(sell.UserID);
+            var buyer = _context.wallets.FirstOrDefault(w => w.UserID == buy.UserID);
+            var seller = _context.wallets.FirstOrDefault(w => w.UserID == sell.UserID);
 
             //compare quantity of the two orders, note lowest
             //generate transaction (this BuyOrderID and SellOrderID,
             //lower quantity), then refer to which order zeroed out;
             //compare next buy order if buy was lowest, and vice versa.
             decimal price;
+            decimal priceDiff = 0.0m;
+
             if (buy.Price.HasValue && sell.Price.HasValue)
             {
                 price = Math.Min(buy.Price.Value, sell.Price.Value);
+                if (price < buy.Price.Value)
+                {
+                    priceDiff = buy.Price.Value - price;
+                }
             }
             else if (buy.Price.HasValue)
             {
@@ -160,6 +177,7 @@ namespace CurrencyExchange.Models
             }
             else
                 throw new InvalidOperationException("Cannot match two market orders with no price.");
+
             var quantity = Math.Min(buy.Remaining, sell.Remaining);
 
             // identify buyer/seller and exchange RMT
@@ -167,8 +185,14 @@ namespace CurrencyExchange.Models
             buyer.RMTLocked -= quantity * price;
             seller.RMTBalance += quantity * price;
 
-            //TODO: If price < buy.Price, unlock the difference * quantity for buyer
+            //If price < buy.Price, unlock the difference * quantity for buyer
+            if(priceDiff > 0)
+            {
+                buyer.RMTLocked -= quantity * priceDiff;
+                buyer.RMTBalance += quantity * priceDiff;
+            }
 
+            //decrement VC needed from each order and close out any empty order
             buy.Remaining -= quantity;
             sell.Remaining -= quantity;
 
@@ -179,6 +203,7 @@ namespace CurrencyExchange.Models
             {
                 buy.OrderStatusID = 2;
             }
+
             if (sell.Remaining == 0)
             {
                 sell.OrderStatusID = 3;
@@ -197,6 +222,8 @@ namespace CurrencyExchange.Models
             };
 
             _context.transactions.Add(transaction);
+
+            return 1;
         }
     }
 }

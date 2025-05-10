@@ -3,18 +3,20 @@
 @{
     ViewData["Title"] = "Orders";
 }
+<p>@ViewData["Message"]</p>
+
+<p>@ViewData["txProcessed"]</p>
 
 <h1>Orders</h1>
 
+<p>This page displays all orders in the Marketplace.</p>
+
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create">Create New Order</a>
 </p>
 <table class="table">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.UserName)
-            </th>
             <th>
                 @Html.DisplayNameFor(model => model.Type)
             </th>
@@ -39,9 +41,6 @@
     <tbody>
 @foreach (var item in Model) {
         <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.UserName)
-            </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Type.Type)
             </td>
