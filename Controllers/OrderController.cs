@@ -28,21 +28,30 @@ namespace CurrencyExchange.Controllers
         // GET: Order
         public async Task<IActionResult> Index()
         {
-            var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-
-            if (string.IsNullOrEmpty(currentUserId))
-            {
-                return Unauthorized();
-            }
-
-            var userOrders = _context.orders
-                .Where(o => o.UserID == currentUserId)
-                .Include(o => o.Type)
-                .Include(o => o.Status);
-
-            return View(await userOrders.ToListAsync());
+            var applicationDbContext = _context.orders.Include(o => o.Type).Include(o => o.Status);
+            return View(await applicationDbContext.ToListAsync());
         }
 
+        // Reverting changes that only displayed current user's orders.
+        // Current user orders are in a table in Dashboard.
+        // All orders can be publicly listed, and that's useful for testing. --LM
+        /*        public async Task<IActionResult> Index()
+                {
+                    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+                    if (string.IsNullOrEmpty(currentUserId))
+                    {
+                        return Unauthorized();
+                    }
+
+                    var userOrders = _context.orders
+                        .Where(o => o.UserID == currentUserId)
+                        .Include(o => o.Type)
+                        .Include(o => o.Status);
+
+                    return View(await userOrders.ToListAsync());
+                }
+        */
         // GET: Order/Details/5
         public async Task<IActionResult> Details(int? id)
         {

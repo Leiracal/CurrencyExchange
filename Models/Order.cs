@@ -20,7 +20,7 @@ namespace CurrencyExchange.Models
         public OrderType? Type { get; set; }
 
         [Column(TypeName = "decimal(8,2)")]
-        [DisplayFormat(DataFormatString = "{0:C}")]
+        [DisplayFormat(DataFormatString = "{0:C}", NullDisplayText = "Market")]
         [Range(0.01, 1000000, ErrorMessage = "Price must be between $0.01 and $1,000,000")]
         public Decimal? Price { get; set; }
 

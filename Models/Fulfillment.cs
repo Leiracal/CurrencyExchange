@@ -185,12 +185,16 @@ namespace CurrencyExchange.Models
             buyer.RMTLocked -= quantity * price;
             seller.RMTBalance += quantity * price;
 
-            //If price < buy.Price, unlock the difference * quantity for buyer
+            // If price < buy.Price, unlock the difference * quantity for buyer
             if(priceDiff > 0)
             {
                 buyer.RMTLocked -= quantity * priceDiff;
                 buyer.RMTBalance += quantity * priceDiff;
             }
+
+            // Exchange the VC
+            buyer.VCBalance += quantity;
+            seller.VCLocked -= quantity;
 
             //decrement VC needed from each order and close out any empty order
             buy.Remaining -= quantity;

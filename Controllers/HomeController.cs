@@ -50,7 +50,7 @@ namespace CurrencyExchange.Controllers
                     //new users have new wallets
                     Wallet wallet = new Wallet
                     {
-                        RMTBalance = 10m,
+                        RMTBalance = 10000m,
                         RMTLocked = 0.0m,
                         VCBalance = 1000,
                         VCLocked = 0,
