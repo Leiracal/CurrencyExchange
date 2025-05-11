@@ -37,8 +37,6 @@ namespace CurrencyExchange.Data
                 new IdentityUser
                 {
                     Id = "953c886e-ac7b-45cd-9f70-30eaca6a5890",
-                    UserName = "aardvark@abbatoir.com",
-                    NormalizedUserName = "AARDVARK@ABBATOIR.COM",
                     Email = "aardvark@abbatoir.com",
                     NormalizedEmail = "AARDVARK@ABBATOIR.COM",
                     EmailConfirmed = true,
@@ -49,8 +47,6 @@ namespace CurrencyExchange.Data
                 new IdentityUser
                 {
                     Id = "606f3c31-f721-4faf-9cd9-ed96c8b11f72",
-                    UserName = "aiko@aikowu.com",
-                    NormalizedUserName = "AIKO@AIKOWU.COM",
                     Email = "aiko@aikowu.com",
                     NormalizedEmail = "AIKO@AIKOWU.COM",
                     EmailConfirmed = true,
@@ -61,8 +57,6 @@ namespace CurrencyExchange.Data
                 new IdentityUser
                 {
                     Id = "508f1f2c-21c8-42d9-806f-2cafc487bbc2",
-                    UserName = "kaneda@kuroda.com",
-                    NormalizedUserName = "KANEDA@KURODA.COM",
                     Email = "kaneda@kuroda.com",
                     NormalizedEmail = "KANEDA@KURODA.COM",
                     EmailConfirmed = true,
@@ -73,8 +67,6 @@ namespace CurrencyExchange.Data
                 new IdentityUser
                 {
                     Id = "6d9715bc-eecb-4135-8e0e-8a9efd3139e3",
-                    UserName = "yuniq@epoch.com",
-                    NormalizedUserName = "YUNIQ@EPOCH.COM",
                     Email = "yuniq@epoch.com",
                     NormalizedEmail = "YUNIQ@EPOCH.COM",
                     EmailConfirmed = true,

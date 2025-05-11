@@ -34,13 +34,14 @@ namespace CurrencyExchange.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RegisterUser([Bind("Username,Email,Password")] User user)
+        public async Task<IActionResult> RegisterUser([Bind("Email,Password")] User user)
         {
             if (ModelState.IsValid)
             {
-                string userName = user.Username;
-                var userIdentity = new IdentityUser(userName);
-                userIdentity.Email = user.Email;
+                var userIdentity = new IdentityUser(user.Email)
+                {
+                    Email = user.Email
+                };
                 string userPassword = user.Password;
                 IdentityResult checkUser = await _userManager.CreateAsync(userIdentity, userPassword);
                 
