@@ -141,24 +141,24 @@ namespace CurrencyExchange.Data
                 new Order
                 {
                     OrderID = 3,
-                    UserID = "953c886e-ac7b-45cd-9f70-30eaca6a5890",
+                    UserID = "508f1f2c-21c8-42d9-806f-2cafc487bbc2",
                     OrderTypeID = 2,
                     Price = 300m,
                     Quantity = 50,
                     Remaining = 50,
                     OrderStatusID = 1,
-                    CreatedAt = new DateTime(2025, 5, 1, 14, 30, 0)
+                    CreatedAt = new DateTime(2025, 5, 3, 08, 45, 0)
                 },
                 new Order
                 {
                     OrderID = 4,
-                    UserID = "953c886e-ac7b-45cd-9f70-30eaca6a5890",
+                    UserID = "6d9715bc-eecb-4135-8e0e-8a9efd3139e3",
                     OrderTypeID = 2,
                     Price = 400m,
                     Quantity = 50,
                     Remaining = 50,
                     OrderStatusID = 1,
-                    CreatedAt = new DateTime(2025, 5, 1, 14, 30, 0)
+                    CreatedAt = new DateTime(2025, 5, 4, 16, 05, 0)
                 }
                 );
         }

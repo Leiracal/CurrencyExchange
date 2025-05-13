@@ -66,15 +66,22 @@ namespace CurrencyExchange.Models
                 //if highest buy order >= lowest sell order, start matching
                 if (buy.Price >= sell.Price)
                 {
-                    tx += CreateTransaction(buy.OrderID, sell.OrderID); //see method below
-                    // If an order is filled, move on to the next order of that type
-                    if (buy.Remaining == 0)
+                    var result = CreateTransaction(buy.OrderID, sell.OrderID);
+
+                    if (result == 0)
                     {
-                        buyIndex++;
+                        // Failed transaction, likely due to insufficient locked funds.
+                        // Moving forward in the order book to avoid infinite loop.
+                        if (buy.Remaining >= sell.Remaining)
+                            sellIndex++;
+                        else
+                            buyIndex++;
                     }
-                    if (sell.Remaining == 0)
+                    else
                     {
-                        sellIndex++;
+                        tx += result;
+                        if (buy.Remaining == 0) buyIndex++;
+                        if (sell.Remaining == 0) sellIndex++;
                     }
                 }
                 //if highest buy limit order < lowest sell order, then stop the loop.
@@ -152,6 +159,9 @@ namespace CurrencyExchange.Models
             var buyer = _context.wallets.FirstOrDefault(w => w.UserID == buy.UserID);
             var seller = _context.wallets.FirstOrDefault(w => w.UserID == sell.UserID);
 
+            //If a wallet is missing or mislinked, exit transaction
+            if (buyer == null || seller == null) return 0;
+
             //compare quantity of the two orders, note lowest
             //generate transaction (this BuyOrderID and SellOrderID,
             //lower quantity), then refer to which order zeroed out;
@@ -179,6 +189,14 @@ namespace CurrencyExchange.Models
                 throw new InvalidOperationException("Cannot match two market orders with no price.");
 
             var quantity = Math.Min(buy.Remaining, sell.Remaining);
+
+            // one final check that everyone has enough balance
+            if (buyer.RMTLocked < quantity * price)
+                return 0; // we are not completing this transaction, because buyer can't afford it
+
+            if (seller.VCLocked < quantity)
+                return 0; // we are not completing this transaction, because seller can't afford it
+
 
             // identify buyer/seller and exchange RMT
             // buyer funds should be in RMTLocked

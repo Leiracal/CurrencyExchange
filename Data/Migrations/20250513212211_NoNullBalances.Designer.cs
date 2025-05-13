@@ -4,6 +4,7 @@ using CurrencyExchange.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CurrencyExchange.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250513212211_NoNullBalances")]
+    partial class NoNullBalances
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -91,25 +93,25 @@ namespace CurrencyExchange.Data.Migrations
                         new
                         {
                             OrderID = 3,
-                            CreatedAt = new DateTime(2025, 5, 3, 8, 45, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(2025, 5, 1, 14, 30, 0, 0, DateTimeKind.Unspecified),
                             OrderStatusID = 1,
                             OrderTypeID = 2,
                             Price = 300m,
                             Quantity = 50,
                             Remaining = 50,
-                            UserID = "508f1f2c-21c8-42d9-806f-2cafc487bbc2",
+                            UserID = "953c886e-ac7b-45cd-9f70-30eaca6a5890",
                             UserName = ""
                         },
                         new
                         {
                             OrderID = 4,
-                            CreatedAt = new DateTime(2025, 5, 4, 16, 5, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(2025, 5, 1, 14, 30, 0, 0, DateTimeKind.Unspecified),
                             OrderStatusID = 1,
                             OrderTypeID = 2,
                             Price = 400m,
                             Quantity = 50,
                             Remaining = 50,
-                            UserID = "6d9715bc-eecb-4135-8e0e-8a9efd3139e3",
+                            UserID = "953c886e-ac7b-45cd-9f70-30eaca6a5890",
                             UserName = ""
                         });
                 });
@@ -398,56 +400,56 @@ namespace CurrencyExchange.Data.Migrations
                         {
                             Id = "953c886e-ac7b-45cd-9f70-30eaca6a5890",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "031f46cd-c05b-4ad7-a4df-f09b27688bc2",
+                            ConcurrencyStamp = "37c2aa5e-46e7-44a6-a544-7822232f6057",
                             Email = "aardvark@abbatoir.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "AARDVARK@ABBATOIR.COM",
                             PasswordHash = "AQAAAAEAACcQAAAAEM8DNhsKKQxKSgg7uwbHwLq89jZfLkeVfg+dWcEtUI6Cna+U8KLYMPb6c47ci5k5uA==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "a05fa144-b85e-44cf-940a-662475bf95ad",
+                            SecurityStamp = "9b7e5ba9-b209-4c0e-91d3-cd753b37d781",
                             TwoFactorEnabled = false
                         },
                         new
                         {
                             Id = "606f3c31-f721-4faf-9cd9-ed96c8b11f72",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "595f3243-8bd4-46a0-bf93-325fd93859b2",
+                            ConcurrencyStamp = "b15a5afc-d7e8-4d77-8500-3a6674b4609a",
                             Email = "aiko@aikowu.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "AIKO@AIKOWU.COM",
                             PasswordHash = "AQAAAAEAACcQAAAAEM8DNhsKKQxKSgg7uwbHwLq89jZfLkeVfg+dWcEtUI6Cna+U8KLYMPb6c47ci5k5uA==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "76262885-1b8f-43a1-9f06-d047de38157d",
+                            SecurityStamp = "67727ec3-59ff-4f4f-8243-27ef90c8111b",
                             TwoFactorEnabled = false
                         },
                         new
                         {
                             Id = "508f1f2c-21c8-42d9-806f-2cafc487bbc2",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "829d1970-da2c-4e7b-91ef-8205b34620e7",
+                            ConcurrencyStamp = "a85d139e-a149-4541-8812-5af11cd46b78",
                             Email = "kaneda@kuroda.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "KANEDA@KURODA.COM",
                             PasswordHash = "AQAAAAEAACcQAAAAEM8DNhsKKQxKSgg7uwbHwLq89jZfLkeVfg+dWcEtUI6Cna+U8KLYMPb6c47ci5k5uA==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "0846375b-8b4e-4fb6-9b67-4800f25ae922",
+                            SecurityStamp = "48cfdf1e-9481-4363-a9bf-e31ada4d0028",
                             TwoFactorEnabled = false
                         },
                         new
                         {
                             Id = "6d9715bc-eecb-4135-8e0e-8a9efd3139e3",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "3a386b78-1608-4eb3-9aa4-766601a502c3",
+                            ConcurrencyStamp = "055d5a65-955e-4821-8135-6a370a568b68",
                             Email = "yuniq@epoch.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "YUNIQ@EPOCH.COM",
                             PasswordHash = "AQAAAAEAACcQAAAAEM8DNhsKKQxKSgg7uwbHwLq89jZfLkeVfg+dWcEtUI6Cna+U8KLYMPb6c47ci5k5uA==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "3d8c59d5-5625-498d-9cf1-931ec905554b",
+                            SecurityStamp = "f6972106-c6b4-461d-a5e7-8314fa8d60d3",
                             TwoFactorEnabled = false
                         });
                 });

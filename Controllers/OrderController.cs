@@ -101,21 +101,26 @@ namespace CurrencyExchange.Controllers
             // Updated code to handle potential null reference for 'wallet'
             Wallet? wallet = await _context.wallets.FirstOrDefaultAsync(w => w.UserID == order.UserID);
 
-            decimal? realMoneyBalance = 0;
-            int? bobcatBalance = 0;
-            decimal? realMoneyLocked = 0;
-            int? bobcatLocked = 0;
-            decimal? realMoneyOrderTotal = 0;
-            int? bobcatOrderTotal = 0;
+            decimal realMoneyBalance = 0.0m;
+            int bobcatBalance = 0;
+            decimal realMoneyLocked = 0.0m;
+            int bobcatLocked = 0;
+            decimal realMoneyOrderTotal = 0.0m;
+            int bobcatOrderTotal = 0;
 
             if (wallet != null)
             {
-                realMoneyBalance = wallet!.RMTBalance ?? 0;
-                bobcatBalance = wallet.VCBalance ?? 0;
-                realMoneyLocked = wallet.RMTLocked ?? 0;
-                bobcatLocked = wallet.VCLocked ?? 0;
+                realMoneyBalance = wallet.RMTBalance;
+                bobcatBalance = wallet.VCBalance;
+                realMoneyLocked = wallet.RMTLocked;
+                bobcatLocked = wallet.VCLocked;
+                if(order.Price != null)
+                {
+                    realMoneyOrderTotal = (Decimal)order.Price * order.Quantity;
+                } else
+                {
 
-                realMoneyOrderTotal = order.Price * order.Quantity;
+                }
                 bobcatOrderTotal = order.Quantity;
             }
             else
@@ -125,9 +130,48 @@ namespace CurrencyExchange.Controllers
 
             // Check if the user has sufficient balance for the order
             // ordertype 1 = buy, ordertype 2 = sell
-            if (order.OrderTypeID != null && order.OrderTypeID == 1 && realMoneyBalance < realMoneyOrderTotal)
+            if (order.OrderTypeID != null && order.OrderTypeID == 1)
             {
-                ModelState.AddModelError("Price", "Insufficient RMT balance for this order.");
+                if(order.Price == null)
+                {
+                    // We need to sweep the order book to estimate the market buy cost --LM
+                    var quantityToBuy = order.Quantity;
+                    decimal totalCost = 0.0m;
+                    var openOrders = await _context.orders
+                        .Where(o => o.OrderTypeID == 2 && o.Remaining > 0 && o.Price != null)
+                        .OrderBy(o => o.Price)
+                        .ThenBy(o => o.CreatedAt)
+                        .ToListAsync();
+
+                    foreach (var openOrder in openOrders)
+                    {
+                        if (quantityToBuy <= 0) break;
+
+                        var fillQuantity = Math.Min(quantityToBuy, openOrder.Remaining);
+                        totalCost += fillQuantity * openOrder.Price.Value;
+                        quantityToBuy -= fillQuantity;
+                    }
+
+                    // If quantityToBuy > 0 here, not enough liquidity in the market; reject the order --LM
+                    if (quantityToBuy > 0)
+                    {
+                        ModelState.AddModelError("", "Not enough sell-side liquidity to fulfill this market buy order.");
+                    }
+                    else if (wallet.RMTBalance < totalCost)
+                    {
+                        ModelState.AddModelError("", $"Insufficient RMT balance. Estimated cost to fulfill market buy: {totalCost:F2}");
+                    }
+                    else
+                    {
+                        // Lock the estimated amount --LM
+                        realMoneyOrderTotal = totalCost;
+                    }
+
+                }
+                else if (realMoneyBalance < realMoneyOrderTotal)
+                {
+                    ModelState.AddModelError("Price", "Insufficient RMT balance for this order.");
+                }
             }
             else if (order.OrderTypeID != null && order.OrderTypeID == 2 && bobcatBalance < bobcatOrderTotal)
             {
