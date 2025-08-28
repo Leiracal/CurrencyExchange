@@ -1,0 +1,79 @@
+SOUTHEAST COMMUNITY COLLEGE
+COMPUTERS & INFORMATION TECHNOLOGY
+INFO-2534-SP2025 GROUP PROJECT
+"BCEX CURRENCY EXCHANGE"
+===================================
+Project Authors: Leira Montgomery, David Pearson, Kenny Ly
+===================================
+
+INTRODUCTION
+
+For our Spring 2025 ASP.net course, our team of three was
+assigned the task of selecting and building a website that
+demonstrated our applied skills in C# and ASP.net. The 
+assignment took place over three weeks and six 90-minute 
+class sessions, though we put in considerable work outside 
+of class.
+
+The other team build a basic website where you could order 
+products and catalog the items you possessed. I, however,
+was feeling ambitious, and suggested a bolder proposal to 
+Kenny and David: we'd create a virtual currency exchange. 
+Similar to a stock exchange or a cryptocurrency exchange, 
+our BCEX project allows users to register a trading
+account, acquire (fictionalized) real-world and virtual 
+currency, and exchange those currencies with each other 
+at their preferred exchange rates.
+
+In order to get the team onboard with the project, I 
+needed to document how such an exchange works, and 
+establish terminology (such as "market orders" and 
+"limit orders") so my fellow developers understood 
+the technical requirements and could map them into 
+user stories. At my team member's request, I handled 
+the project management, as this was our first class 
+experience with user stories and sprints, and I was 
+the only member with professional Agile project 
+management experience.
+
+We divided up our work: Kenny provided us accounts and 
+logins, and David implemented most of our views. I focused 
+on the backend systems of the exchange itself, creating 
+a separate Fulfillment class that could be dropped into 
+the rest of the project, performing all the requisite 
+exchange functions on its own. The business classes would 
+only need to know how to ask Fulfillment to start the 
+process of matching and filling orders.
+
+Due to implementation issues with logins, the actual 
+exchange elements could not be tested until there were 
+only three days remaining before our final presentation. 
+However, once the rest of the project was up and 
+running, the Fulfillment class only required minor bug 
+fixes (mostly tied to null checking and edge cases) to 
+be fully operational.
+
+The most significant real-world limitation of the 
+exchange is that it is not designed to handle multiple 
+simultaneous transactions, something a real exchange 
+would naturally need to accommodate. The Fulfillment 
+routines are designed to run in a tiny fraction of a 
+second, meaning they are extremely unlikely to conflict 
+with another Fulfillment routine at the scale we were 
+presenting at. That said, some of the work that would 
+be required for a more rugged fulfillment process is 
+already present in the way funds are locked before 
+transactions are fully processed and completed.
+
+I'm proud of the work we did: not only for going above 
+and beyond the requirements of the class, but by 
+selecting a project that was still comfortably within 
+our schedule and abilities, dividing up the work to 
+match our skill sets and availability, and reacting to 
+complications and coordinating to adjust as needed.
+
+I received a 100% grade on this final assignment, and 
+a 99.6% on the entirety of the INFO-2634 course.
+
+--Leira Montgomery
+
